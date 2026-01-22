@@ -1,4 +1,4 @@
-﻿namespace WebApplication1.Dtos;
+﻿namespace CoordinatesApp.Dtos;
 
 public class CoordinateUpsertDto
 {

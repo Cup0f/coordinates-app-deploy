@@ -1,4 +1,4 @@
-﻿namespace WebApplication1.Models;
+﻿namespace CoordinatesApp.Models;
 
 public class Coordinate
 {

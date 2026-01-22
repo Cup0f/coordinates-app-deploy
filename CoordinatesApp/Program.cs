@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using WebApplication1.Data;
+using CoordinatesApp.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 

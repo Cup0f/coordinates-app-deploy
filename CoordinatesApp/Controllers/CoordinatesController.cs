@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CoordinatesApp.Data;
+using CoordinatesApp.Dtos;
+using CoordinatesApp.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using WebApplication1.Data;
-using WebApplication1.Dtos;
-using WebApplication1.Models;
 
-namespace WebApplication1.Controllers;
+namespace CoordinatesApp.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

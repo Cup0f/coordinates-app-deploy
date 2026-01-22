@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication1", "WebApplication1\WebApplication1.csproj", "{BE83869F-8A56-4DC7-B878-6B11DDC24AEF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoordinatesApp", "CoordinatesApp\CoordinatesApp.csproj", "{BE83869F-8A56-4DC7-B878-6B11DDC24AEF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

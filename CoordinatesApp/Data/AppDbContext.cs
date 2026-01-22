@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using WebApplication1.Models;
+﻿using CoordinatesApp.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace WebApplication1.Data;
+namespace CoordinatesApp.Data;
 
 public class AppDbContext : DbContext
 {
