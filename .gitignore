@@ -10,3 +10,6 @@ riderModule.iml
 
 # Rider / ReSharper user settings
 *.DotSettings.user
+
+**/appsettings.Development.json
+**/appsettings.json
