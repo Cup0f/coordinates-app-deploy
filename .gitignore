@@ -3,3 +3,10 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+
+# JetBrains Rider / IntelliJ
+.idea/
+*.iml
+
+# Rider / ReSharper user settings
+*.DotSettings.user
