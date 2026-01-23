@@ -1,14 +1,14 @@
 ﻿import {useEffect, useMemo, useState} from "react";
 import L from "leaflet";
-import SidePanel from "./components/SidePanel.jsx";
-import MapCanvas from "./components/MapCanvas.jsx";
+import SidePanel from "./SidePanel.jsx";
+import MapCanvas from "./MapCanvas.jsx";
 
 import {
     getAllCoordinates,
     updateCoordinate,
     deleteCoordinate,
     createCoordinate,
-} from "./api/coordinatesApi.js";
+} from "../api/coordinatesApi.js";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";

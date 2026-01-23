@@ -1,5 +1,4 @@
-﻿import { API_BASE_URL } from "../api.js";
-
+﻿const API_BASE_URL = "https://localhost:7059";
 async function ensureOk(res, fallbackMsg) {
     if (res.ok) return;
 
