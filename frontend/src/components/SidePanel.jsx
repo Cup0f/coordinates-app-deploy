@@ -38,7 +38,6 @@
     };
 
     const cardStyle = {
-        background: "#caf1ff",
         borderRadius: 12,
         padding: 12,
         marginBottom: 12,
