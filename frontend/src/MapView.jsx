@@ -31,6 +31,8 @@ export default function MapView() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [selectedId, setSelectedId] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [draft, setDraft] = useState(null);
 
     useEffect(() => {
         const load = async () => {
@@ -62,10 +64,31 @@ export default function MapView() {
         [sorted, selectedId],
     );
     
+    useEffect(() => {
+        if (!selected) {
+            setIsEditing(false);
+            setDraft(null);
+            return;
+        }
+        
+        setIsEditing(false);
+        setDraft({
+            id: selected.id,
+            name: selected.name,
+            latitude: selected.latitude,
+            longitude: selected.longitude,
+            order: selected.order,
+        });
+    }, [selected]);
+    
     const polyPoints = useMemo(() => {
         return sorted.map((c) => [c.latitude, c.longitude]);
     }, [sorted]);
-    
+
+    const updateDraft = (field, value) => {
+        setDraft((prev) => ({ ...prev, [field]: value }));
+    };
+
     return (
         <div style={{ display: "flex", height: "100vh" }}>
             {/* Side panel */}
@@ -74,15 +97,153 @@ export default function MapView() {
 
                 {selected ? (
                     <div style={{ padding: 10, border: "1px solid #ddd", borderRadius: 8, marginBottom: 12 }}>
-                        <h4 style={{ margin: "0 0 8px 0" }}>Details</h4>
-                        <div><b>Name:</b> {selected.name ?? "-"}</div>
-                        <div><b>Lat:</b> {selected.latitude}</div>
-                        <div><b>Lng:</b> {selected.longitude}</div>
-                        <div><b>Order:</b> {selected.order}</div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <h4 style={{ margin: 0 }}>{isEditing ? "Edit" : "Details"}</h4>
 
-                        <button style={{ marginTop: 10 }} onClick={() => alert("Edit mode next!")}>
-                            Edit
-                        </button>
+                            {!isEditing ? (
+                                <div style={{ display: "flex", gap: 8 }}>
+                                    <button onClick={() => setIsEditing(true)}>
+                                        Edit
+                                    </button>
+
+                                    <button
+                                        onClick={async () => {
+                                            if (!selected) return;
+
+                                            const ok = confirm(`Delete "${selected.name ?? `Point ${selected.id}`}"?`);
+                                            if (!ok) return;
+
+                                            try {
+                                                setError("");
+
+                                                const res = await fetch(`${API_BASE_URL}/api/coordinates/${selected.id}`, {
+                                                    method: "DELETE",
+                                                });
+
+                                                if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+                                                
+                                                setCoords((prev) => prev.filter((c) => c.id !== selected.id));
+                                                
+                                                setSelectedId(null);
+                                                setIsEditing(false);
+                                                setDraft(null);
+                                            } catch (e) {
+                                                setError(e?.message ?? "Unknown error");
+                                            }
+                                        }}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            ) : (
+                                <div style={{ display: "flex", gap: 8 }}>
+                                    <button
+                                        onClick={() => {
+                                            // reset draft
+                                            setDraft({
+                                                id: selected.id,
+                                                name: selected.name ?? "",
+                                                latitude: selected.latitude,
+                                                longitude: selected.longitude,
+                                                order: selected.order,
+                                            });
+                                            setIsEditing(false);
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                setError("");
+
+                                                const res = await fetch(`${API_BASE_URL}/api/coordinates/${draft.id}`, {
+                                                    method: "PUT",
+                                                    headers: { "Content-Type": "application/json" },
+                                                    body: JSON.stringify({
+                                                        name: draft.name,
+                                                        latitude: draft.latitude,
+                                                        longitude: draft.longitude,
+                                                        order: draft.order,
+                                                    }),
+                                                });
+
+                                                if (!res.ok) throw new Error(`Save failed: ${res.status}`);
+                                                
+                                                let updated = null;
+                                                try {
+                                                    updated = await res.json();
+                                                } catch {
+                                                }
+
+                                                if (updated) {
+                                                    setCoords((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+                                                } else {
+                                                    const reload = await fetch(`${API_BASE_URL}/api/coordinates`);
+                                                    const data = await reload.json();
+                                                    setCoords(data);
+                                                }
+
+                                                setIsEditing(false);
+                                            } catch (e) {
+                                                setError(e?.message ?? "Unknown error");
+                                            }
+                                        }}
+                                    >
+                                        Save
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {!isEditing ? (
+                            <div style={{ marginTop: 10 }}>
+                                <div><b>Name:</b> {selected.name ?? "-"}</div>
+                                <div><b>Lat:</b> {selected.latitude}</div>
+                                <div><b>Lng:</b> {selected.longitude}</div>
+                                <div><b>Order:</b> {selected.order}</div>
+                            </div>
+                        ) : (
+                            <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+                                <label style={{ display: "grid", gap: 4 }}>
+                                    <span>Name</span>
+                                    <input
+                                        value={draft?.name ?? ""}
+                                        onChange={(e) => updateDraft("name", e.target.value)}
+                                    />
+                                </label>
+
+                                <label style={{ display: "grid", gap: 4 }}>
+                                    <span>Latitude</span>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        value={draft?.latitude ?? ""}
+                                        onChange={(e) => updateDraft("latitude", Number(e.target.value))}
+                                    />
+                                </label>
+
+                                <label style={{ display: "grid", gap: 4 }}>
+                                    <span>Longitude</span>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        value={draft?.longitude ?? ""}
+                                        onChange={(e) => updateDraft("longitude", Number(e.target.value))}
+                                    />
+                                </label>
+
+                                <label style={{ display: "grid", gap: 4 }}>
+                                    <span>Order</span>
+                                    <input
+                                        type="number"
+                                        value={draft?.order ?? ""}
+                                        onChange={(e) => updateDraft("order", Number(e.target.value))}
+                                    />
+                                </label>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div style={{ marginBottom: 12, opacity: 0.7 }}>
@@ -115,7 +276,7 @@ export default function MapView() {
                 <MapContainer
                     center={[47.4979, 19.0402]}
                     zoom={13}
-                    style={{ height: "100vh", width: "100%" }}
+                    style={{ height: "100%", width: "100%" }}
                 >
                     <TileLayer
                         attribution="&copy; OpenStreetMap contributors"
