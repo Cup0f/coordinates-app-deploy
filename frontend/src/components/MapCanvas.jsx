@@ -13,12 +13,12 @@ function FlyToSelected({ selected }) {
 }
 
 export default function MapCanvas({
-                                      points,
-                                      selected,
-                                      polyPoints,
-                                      loading,
-                                      error,
-                                  }) {
+      points,
+      selected,
+      polyPoints,
+      loading,
+      error,
+    }) {
     return (
         <div style={{ flex: 1 }}>
             <MapContainer
