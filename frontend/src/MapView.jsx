@@ -33,6 +33,13 @@ export default function MapView() {
     const [selectedId, setSelectedId] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [draft, setDraft] = useState(null);
+    const [isCreating, setIsCreating] = useState(false);
+    const [newDraft, setNewDraft] = useState({
+        name: "",
+        latitude: 47.4979,
+        longitude: 19.0402,
+        order: 999,
+    })
 
     useEffect(() => {
         const load = async () => {
@@ -89,11 +96,114 @@ export default function MapView() {
         setDraft((prev) => ({ ...prev, [field]: value }));
     };
 
+    const updateNewDraft = (field, value) => {
+        setNewDraft((prev) => ({ ...prev, [field]: value }));
+    };
+
     return (
         <div style={{ display: "flex", height: "100vh" }}>
             {/* Side panel */}
             <div style={{ width: 320, borderRight: "1px solid #ddd", padding: 12, overflow: "auto" }}>
                 <h3 style={{ marginTop: 0 }}>Points</h3>
+
+                <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                    <button
+                        onClick={() => {
+                            setIsCreating((v) => !v);
+                            setIsEditing(false);
+                        }}
+                    >
+                        {isCreating ? "Close" : "+ Add point"}
+                    </button>
+                </div>
+
+                {isCreating && (
+                    <div style={{ padding: 10, border: "1px solid #ddd", borderRadius: 8, marginBottom: 12 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <h4 style={{ margin: 0 }}>Create</h4>
+                            <button onClick={() => setIsCreating(false)}>Cancel</button>
+                        </div>
+
+                        <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+                            <label style={{ display: "grid", gap: 4 }}>
+                                <span>Name</span>
+                                <input
+                                    value={newDraft.name}
+                                    onChange={(e) => updateNewDraft("name", e.target.value)}
+                                />
+                            </label>
+
+                            <label style={{ display: "grid", gap: 4 }}>
+                                <span>Latitude</span>
+                                <input
+                                    type="number"
+                                    step="any"
+                                    value={newDraft.latitude}
+                                    onChange={(e) => updateNewDraft("latitude", Number(e.target.value))}
+                                />
+                            </label>
+
+                            <label style={{ display: "grid", gap: 4 }}>
+                                <span>Longitude</span>
+                                <input
+                                    type="number"
+                                    step="any"
+                                    value={newDraft.longitude}
+                                    onChange={(e) => updateNewDraft("longitude", Number(e.target.value))}
+                                />
+                            </label>
+
+                            <label style={{ display: "grid", gap: 4 }}>
+                                <span>Order</span>
+                                <input
+                                    type="number"
+                                    value={newDraft.order}
+                                    onChange={(e) => updateNewDraft("order", Number(e.target.value))}
+                                />
+                            </label>
+
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        setError("");
+
+                                        const res = await fetch(`${API_BASE_URL}/api/coordinates`, {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({
+                                                name: newDraft.name,
+                                                latitude: newDraft.latitude,
+                                                longitude: newDraft.longitude,
+                                                order: newDraft.order,
+                                            }),
+                                        });
+
+                                        if (!res.ok) throw new Error(`Create failed: ${res.status}`);
+
+                                        const created = await res.json();
+                                        
+                                        setCoords((prev) => [...prev, created]);
+                                        
+                                        setSelectedId(created.id);
+                                        setIsCreating(false);
+                                        
+                                        setNewDraft({
+                                            name: "",
+                                            latitude: newDraft.latitude,
+                                            longitude: newDraft.longitude,
+                                            order: newDraft.order + 1,
+                                        });
+                                    } catch (e) {
+                                        setError(e?.message ?? "Unknown error");
+                                    }
+                                }}
+                            >
+                                Create
+                            </button>
+                        </div>
+                    </div>
+                )}
+
 
                 {selected ? (
                     <div style={{ padding: 10, border: "1px solid #ddd", borderRadius: 8, marginBottom: 12 }}>
