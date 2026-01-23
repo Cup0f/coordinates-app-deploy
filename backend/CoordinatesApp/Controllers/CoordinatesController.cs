@@ -9,20 +9,13 @@ namespace CoordinatesApp.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 
-public class CoordinatesController : ControllerBase
-{ 
-    private readonly AppDbContext _context;
-    
-    public CoordinatesController(AppDbContext context)
-    {
-        _context = context;
-    }
-   
-   [HttpGet]
+public class CoordinatesController(AppDbContext context) : ControllerBase
+{
+    [HttpGet]
    public async Task<ActionResult<IEnumerable<Coordinate>>> GetAll()
    {
-       var coords = await _context.Coordinates
-           .OrderBy(c => c.Id)
+       var coords = await context.Coordinates
+           .OrderBy(c => c.Order)
            .ToListAsync();
 
        return Ok(coords);
@@ -31,7 +24,7 @@ public class CoordinatesController : ControllerBase
    [HttpGet("{id:int}")]
    public async Task<ActionResult<Coordinate>> GetById(int id)
    {
-       var coord = await _context.Coordinates.FindAsync(id);
+       var coord = await context.Coordinates.FindAsync(id);
        if (coord == null) return NotFound();
        return Ok(coord);
    }
@@ -47,8 +40,8 @@ public class CoordinatesController : ControllerBase
            Order = dto.Order,
        };
 
-       _context.Coordinates.Add(entity);
-       await _context.SaveChangesAsync();
+       context.Coordinates.Add(entity);
+       await context.SaveChangesAsync();
        
        return CreatedAtAction(nameof(GetById), new { id = entity.Id }, entity);
    }
@@ -56,7 +49,7 @@ public class CoordinatesController : ControllerBase
    [HttpPut("{id:int}")]
    public async Task<IActionResult> Update(int id, CoordinateUpsertDto dto)
    {
-       var entity = await _context.Coordinates.FindAsync(id);
+       var entity = await context.Coordinates.FindAsync(id);
        if (entity == null) return NotFound();
        
        entity.Latitude = dto.Latitude;
@@ -64,19 +57,19 @@ public class CoordinatesController : ControllerBase
        entity.Name = dto.Name;
        entity.Order = dto.Order;
        
-       await _context.SaveChangesAsync();
+       await context.SaveChangesAsync();
        
-       return NoContent();
+       return Ok(entity);
    }
 
    [HttpDelete("{id:int}")]
    public async Task<ActionResult<Coordinate>> Delete(int id)
    {
-       var entity = await _context.Coordinates.FindAsync(id);
+       var entity = await context.Coordinates.FindAsync(id);
        if (entity == null) return NotFound();
 
-       _context.Coordinates.Remove(entity);
-       await _context.SaveChangesAsync();
+       context.Coordinates.Remove(entity);
+       await context.SaveChangesAsync();
 
        return NoContent();
    }
