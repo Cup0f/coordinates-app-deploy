@@ -4,6 +4,13 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet"
 import L from "leaflet";
 import { useMap } from "react-leaflet";
 
+import {
+    getAllCoordinates,
+    updateCoordinate,
+    deleteCoordinate,
+    createCoordinate,
+} from "./api/coordinatesApi.js";
+
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
@@ -46,11 +53,9 @@ export default function MapView() {
             try {
                 setLoading(true);
                 setError("");
-                
-                const res = await fetch(`${API_BASE_URL}/api/coordinates`);
-                if (!res.ok) throw new Error(`API error: ${res.status}`);
 
-                const data = await res.json();
+                const data = await getAllCoordinates();
+                
                 setCoords(data);
             } catch (e) {
                 setError(e?.message ?? "Unknown error");
@@ -167,23 +172,16 @@ export default function MapView() {
                                     try {
                                         setError("");
 
-                                        const res = await fetch(`${API_BASE_URL}/api/coordinates`, {
-                                            method: "POST",
-                                            headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({
-                                                name: newDraft.name,
-                                                latitude: newDraft.latitude,
-                                                longitude: newDraft.longitude,
-                                                order: newDraft.order,
-                                            }),
-                                        });
+                                        const dto = {
+                                            name: newDraft.name,
+                                            latitude: newDraft.latitude,
+                                            longitude: newDraft.longitude,
+                                            order: newDraft.order,
+                                        };
 
-                                        if (!res.ok) throw new Error(`Create failed: ${res.status}`);
-
-                                        const created = await res.json();
+                                        const created = await createCoordinate(dto);
                                         
                                         setCoords((prev) => [...prev, created]);
-                                        
                                         setSelectedId(created.id);
                                         setIsCreating(false);
                                         
@@ -226,14 +224,9 @@ export default function MapView() {
                                             try {
                                                 setError("");
 
-                                                const res = await fetch(`${API_BASE_URL}/api/coordinates/${selected.id}`, {
-                                                    method: "DELETE",
-                                                });
-
-                                                if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+                                                await deleteCoordinate(selected.id);
                                                 
                                                 setCoords((prev) => prev.filter((c) => c.id !== selected.id));
-                                                
                                                 setSelectedId(null);
                                                 setIsEditing(false);
                                                 setDraft(null);
@@ -268,30 +261,21 @@ export default function MapView() {
                                             try {
                                                 setError("");
 
-                                                const res = await fetch(`${API_BASE_URL}/api/coordinates/${draft.id}`, {
-                                                    method: "PUT",
-                                                    headers: { "Content-Type": "application/json" },
-                                                    body: JSON.stringify({
-                                                        name: draft.name,
-                                                        latitude: draft.latitude,
-                                                        longitude: draft.longitude,
-                                                        order: draft.order,
-                                                    }),
-                                                });
+                                                const dto = {
+                                                    name: draft.name,
+                                                    latitude: draft.latitude,
+                                                    longitude: draft.longitude,
+                                                    order: draft.order,
+                                                };
 
-                                                if (!res.ok) throw new Error(`Save failed: ${res.status}`);
-                                                
-                                                let updated = null;
-                                                try {
-                                                    updated = await res.json();
-                                                } catch {
-                                                }
+                                                const updated = await updateCoordinate(draft.id, dto);
 
                                                 if (updated) {
+                                                    // backend Ok(entity)
                                                     setCoords((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
                                                 } else {
-                                                    const reload = await fetch(`${API_BASE_URL}/api/coordinates`);
-                                                    const data = await reload.json();
+                                                    // backend NoContent -> reload
+                                                    const data = await getAllCoordinates();
                                                     setCoords(data);
                                                 }
 
