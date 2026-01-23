@@ -1,8 +1,7 @@
 ﻿import {useEffect, useMemo, useState} from "react";
-import {MapContainer, TileLayer, Marker, Popup, Polyline} from "react-leaflet";
 import L from "leaflet";
-import {useMap} from "react-leaflet";
 import SidePanel from "./components/SidePanel.jsx";
+import MapCanvas from "./components/MapCanvas.jsx";
 
 import {
     getAllCoordinates,
@@ -15,24 +14,12 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
-
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
     iconUrl: markerIcon,
     shadowUrl: markerShadow,
 });
-
-function FlyToSelected({selected}) {
-    const map = useMap();
-
-    useEffect(() => {
-        if (!selected) return;
-        map.flyTo([selected.latitude, selected.longitude], 15, {duration: 0.5});
-    }, [selected, map]);
-
-    return null;
-}
 
 export default function MapView() {
     const [coords, setCoords] = useState([]);
@@ -199,7 +186,6 @@ export default function MapView() {
 
     return (
         <div style={{display: "flex", height: "100vh"}}>
-            {/* Side panel */}
             <SidePanel
                 points={sorted}
                 selectedId={selectedId}
@@ -220,67 +206,13 @@ export default function MapView() {
                 clearError={() => setError("")}
             />
 
-            <div style={{flex: 1}}>
-                <MapContainer
-                    center={[47.4979, 19.0402]}
-                    zoom={13}
-                    style={{height: "100%", width: "100%"}}
-                >
-                    <TileLayer
-                        attribution="&copy; OpenStreetMap contributors"
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-
-                    <FlyToSelected selected={selected}/>
-
-                    {loading && (
-                        <div
-                            style={{
-                                position: "absolute",
-                                zIndex: 1000,
-                                top: 10,
-                                left: 10,
-                                padding: "8px 10px",
-                                background: "white",
-                                borderRadius: 6,
-                            }}
-                        >
-                            Loading...
-                        </div>
-                    )}
-
-                    {error && (
-                        <div
-                            style={{
-                                position: "absolute",
-                                zIndex: 1000,
-                                top: 10,
-                                left: 10,
-                                padding: "8px 10px",
-                                background: "white",
-                                borderRadius: 6,
-                                maxWidth: 360,
-                            }}
-                        >
-                            <b>Error:</b> {error}
-                        </div>
-                    )}
-
-                    {sorted.map((c) => (
-                        <Marker key={c.id} position={[c.latitude, c.longitude]}>
-                            <Popup>
-                                <b>{c.name ?? `Point ${c.id}`}</b>
-                                <div>Order: {c.order}</div>
-                                <div>
-                                    {c.latitude}, {c.longitude}
-                                </div>
-                            </Popup>
-                        </Marker>
-                    ))}
-
-                    {polyPoints.length >= 2 && <Polyline positions={polyPoints}/>}
-                </MapContainer>
-            </div>
+            <MapCanvas
+                points={sorted}
+                selected={selected}
+                polyPoints={polyPoints}
+                loading={loading}
+                error={error}
+            />
         </div>
     );
 }
