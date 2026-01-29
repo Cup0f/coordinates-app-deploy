@@ -13,15 +13,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("FrontendDev", policy =>
-    {
-        policy
-            .AllowAnyOrigin()
+    options.AddDefaultPolicy(p =>
+        p.AllowAnyOrigin()
             .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
+            .AllowAnyMethod());
 });
-
 
 var app = builder.Build();
 
@@ -32,6 +28,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("FrontendDev");
+app.UseCors();
 app.MapControllers();
 app.Run();
